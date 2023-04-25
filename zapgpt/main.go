@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 )
 
 
@@ -47,7 +50,27 @@ type Choices struct {
 		if err != nil {
 			return "", err
 		}
+		request,err :=  http.NewRequest("POST","https://api.openai.com/v1/chat/completions", bytes.NewBuffer(reqToJson))
+		if err != nil {
+			return "", err
+		}
+		request.Header.Set("Content-Type" , "application/json")
+		request.Header.Set("Authorization" , "Bearer sk-xxx")
+
+		response,err = http.DefaultClient.Do(request)
+		if err != nil {
+			return "",err
+		}
+		defer response.Body.Close()
+		respBody,err := ioutil.ReadAll(response.Body)
+		var resp Response
+		err = json.Unmarshal(response.Body ,&resp )
+		if err != nil {
+			return "",err
+		}
+		return resp.Choices[0].Message.Contet , nil
 	}
+
 
 func main(){
 	fmt.Println("hello word")
